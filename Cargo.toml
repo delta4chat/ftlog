@@ -1,12 +1,12 @@
 [package]
-name = "ftlog"
-version = "0.2.12"
+name = "ftlog2"
+version = "0.3.0"
 edition = "2021"
-authors = [ "Non-convex Tech" ]
+authors = [ "Non-convex Tech", "Delta4 <delta4chat@gmx.com>" ]
 license = "MIT OR Apache-2.0"
 readme = "README.md"
-repository = "https://github.com/nonconvextech/ftlog"
-documentation = "https://docs.rs/ftlog"
+repository = "https://github.com/delta4chat/ftlog"
+documentation = "https://docs.rs/ftlog2"
 description = """
 An asynchronous logging library for high performance
 """
@@ -16,8 +16,8 @@ exclude = [ ".standard-version", ".versionrc", ".github" ]
 
 [features]
 default = [ "random_drop" ]
-tsc = [ "minstant", "once_cell" ]
-random_drop = [ "fastrand" ]
+tsc = [ "dep:minstant", "dep:once_cell" ]
+random_drop = [ "dep:fastrand" ]
 
 [dependencies]
 crossbeam-channel = "0.5.0"
@@ -46,5 +46,6 @@ typed-builder = "0.16"
   version = "0.4"
   features = [ "std", "kv_unstable" ]
 
-[target."cfg(target_family = \"unix\")".dependencies.tz-rs]
-version = "0.6.14"
+[target.'cfg(target_family = "unix")'.dependencies]
+tz-rs = { version = "0.6.14" }
+

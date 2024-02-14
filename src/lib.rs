@@ -1022,7 +1022,7 @@ impl Builder {
         };
         let (notification_sender, notification_receiver) = bounded(1);
         std::thread::Builder::new()
-            .name("logger".to_string())
+            .name("ftlog-logger".to_string())
             .spawn(move || {
                 let mut appenders = self.appenders;
                 let filters = filters;
@@ -1041,8 +1041,7 @@ impl Builder {
                 let mut root = self.root;
                 let mut last_log = HashMap::default();
                 let mut missed_log = HashMap::default();
-                let mut last_flush = Instant::now();
-                let timeout = Duration::from_millis(200);
+                let timeout = Duration::from_secs(2);
                 loop {
                     match receiver.recv_timeout(timeout) {
                         Ok(LoggerInput::LogMsg(log_msg)) => {
@@ -1090,16 +1089,13 @@ impl Builder {
                             }
                         }
                         Err(RecvTimeoutError::Timeout) => {
-                            if last_flush.elapsed() > Duration::from_millis(1000) {
-                                let flush_errors = appenders
-                                    .values_mut()
-                                    .chain([&mut root])
-                                    .filter_map(|w| w.flush().err());
-                                for err in flush_errors {
-                                    log::warn!("Ftlog flush error: {}", err);
-                                }
-                                last_flush = Instant::now();
-                            };
+                            let flush_errors = appenders
+                                .values_mut()
+                                .chain([&mut root])
+                                .filter_map(|w| w.flush().err());
+                            for err in flush_errors {
+                                log::warn!("Ftlog flush error: {}", err);
+                            }
                         }
                         Err(e) => {
                             eprintln!(
