@@ -293,8 +293,8 @@ use time::format_description::OwnedFormatItem;
 use time::{OffsetDateTime, UtcOffset};
 
 use std::borrow::Cow;
-use std::fmt::Display;
-use std::hash::{BuildHasher, Hash, Hasher};
+use core::fmt::Display;
+use core::hash::{BuildHasher, Hash, Hasher};
 use std::io::{stderr, Error as IoError, Write};
 use std::sync::atomic::{AtomicBool, AtomicUsize, Ordering};
 use std::sync::Arc;
@@ -362,6 +362,7 @@ fn local_timezone() -> UtcOffset {
     UtcOffset::current_local_offset().unwrap_or(UtcOffset::UTC)
 }
 
+//#[derive(Debug)]
 struct LogMsg {
     time: Time,
     msg: Box<dyn Sync + Send + Display>,
@@ -370,6 +371,21 @@ struct LogMsg {
     limit: u32,
     limit_key: u64,
 }
+impl core::fmt::Debug for LogMsg {
+    fn fmt(&self, f: &mut core::fmt::Formatter)
+        -> Result<(), core::fmt::Error>
+    {
+        f.debug_struct("LogMsg")
+            .field("time", &self.time)
+            .field("msg", &self.msg.to_string())
+            .field("level", &self.level)
+            .field("target", &self.target)
+            .field("limit", &self.limit)
+            .field("limit_key", &self.limit_key)
+            .finish()
+    }
+}
+
 impl LogMsg {
     fn write(
         self,
@@ -459,6 +475,7 @@ impl LogMsg {
     }
 }
 
+#[derive(Debug)]
 enum LoggerInput {
     LogMsg(LogMsg),
     Flush,
@@ -564,6 +581,7 @@ impl FtLogFormat for FtLogFormatter {
     }
 }
 
+#[derive(Debug)]
 struct Message {
     level: Level,
     thread: Option<String>,
@@ -585,6 +603,7 @@ impl Display for Message {
     }
 }
 
+#[derive(Debug)]
 struct DiscardState {
     last: ArcSwap<Instant>,
     count: AtomicUsize,
@@ -594,6 +613,7 @@ struct DiscardState {
 ///
 /// With this guard, you can ensure all logs are written to destination
 /// when the application exits.
+#[derive(Debug)]
 pub struct LoggerGuard {
     queue: Sender<LoggerInput>,
     notification: Receiver<LoggerOutput>,
@@ -608,7 +628,9 @@ impl Drop for LoggerGuard {
             .expect("logger notification closed, this is a bug");
     }
 }
+
 /// ftlog global logger
+//#[derive(Debug)]
 pub struct Logger {
     format: Box<dyn FtLogFormat>,
     level: LevelFilter,
@@ -721,6 +743,7 @@ impl Log for Logger {
     }
 }
 
+#[derive(Debug)]
 struct BoundedChannelOption {
     size: usize,
     block: bool,
@@ -764,6 +787,7 @@ struct BoundedChannelOption {
 /// For performance reason, `ftlog` only retrieve timezone info once and use this
 /// local timezone offset forever. Thus timestamp in log does not aware of timezone
 /// change by OS.
+//#[derive(Debug)]
 pub struct Builder {
     format: Box<dyn FtLogFormat>,
     time_format: Option<OwnedFormatItem>,
@@ -782,12 +806,15 @@ pub fn builder() -> Builder {
     Builder::new()
 }
 
+#[derive(Debug)]
 struct Directive {
     path: &'static str,
     level: Option<LevelFilter>,
     appender: Option<&'static str>,
 }
+
 /// timezone for log
+#[derive(Debug)]
 pub enum LogTimezone {
     /// local timezone
     ///
